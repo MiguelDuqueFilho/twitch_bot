@@ -1,4 +1,5 @@
 const client = require('../client');
+const logger = require('../../logger');
 
 const quitbot = async (channel, user, message, args, self) => {
   const isNotChannel =
@@ -14,7 +15,7 @@ const quitbot = async (channel, user, message, args, self) => {
     );
     await client.disconnect();
   } catch (error) {
-    console.error(`quitbot error=${error}`);
+    logger.error(`quitbot error=${error}`);
   }
 };
 
@@ -32,16 +33,16 @@ const command3 = (channel, user, message, args, self) => {
   client
     .clear(channel)
     .then((data) => {
-      console.log(`!command3 -> data : ${data}`);
+      logger.debug(`!command3 -> data : ${data}`);
     })
     .catch((err) => {
-      console.log(`!command3 -> Error : ${err}`);
+      logger.debug(`!command3 -> Error : ${err}`);
     });
 };
 
 // const ping = (client, message, args, user, channel, self) => {
 const ping = (channel, user, message, args, self) => {
-  console.log(
+  logger.debug(
     `This is a ping.. channel=${channel}, user=${user}, date=${message}, self=${self} `
   );
   client.ping().then(function (data) {

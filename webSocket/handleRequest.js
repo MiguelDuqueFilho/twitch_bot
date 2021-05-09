@@ -1,3 +1,4 @@
+const logger = require('../logger');
 const client = require('../twitch/client');
 
 // I'm maintaining all active connections in this object
@@ -23,7 +24,7 @@ const twitchSrvUsers = (module.exports = {
 });
 
 function originIsAllowed(origin) {
-  console.log(`${new Date()} origin ${origin}`);
+  logger.debug(`origin ${origin}`);
   // put logic here to detect whether the specified origin is allowed.
   return true;
 }
@@ -48,27 +49,19 @@ function handleRequest(request) {
   if (!originIsAllowed(request.origin)) {
     // Make sure we only accept requests from an allowed origin
     request.reject();
-    console.log(
-      new Date() + ' Connection from origin ' + request.origin + ' rejected.'
-    );
+    logger.warn('Connection from origin ' + request.origin + ' rejected.');
     return;
   }
   var userID = getUniqueID();
 
-  console.log(
-    new Date() +
-      ' Recieved a new connection from origin ' +
-      request.origin +
-      '.'
-  );
+  logger.debug('Recieved a new connection from origin ' + request.origin + '.');
   // You can rewrite this part of the code to accept only the requests from allowed origin
   const connection = request.accept(null, request.origin);
 
   webClients[userID] = connection;
 
-  console.log(
-    new Date() +
-      ' webClients connected: ' +
+  logger.debug(
+    'webClients connected: ' +
       userID +
       ' in ' +
       Object.getOwnPropertyNames(webClients)
@@ -83,7 +76,7 @@ function handleRequest(request) {
         handleBinary(message.data);
         break;
       default:
-        console.log(
+        logger.debug(
           `Something else ? channel=${channel}, tags=${tags['display-name']}, messageType=${tags['message-type']}, message=${message}, self=${self} `
         );
         break;
@@ -91,26 +84,25 @@ function handleRequest(request) {
   });
 
   connection.on('close', function (connetion) {
-    console.log(new Date() + ' Client ' + userID + ' disconnected.');
+    logger.debug('Client ' + userID + ' disconnected.');
     delete webClients[userID];
   });
 
   connection.on('error', function (error) {
-    console.log(new Date() + ' Connection Error: ' + error.toString());
+    logger.debug(' Connection Error: ' + error.toString());
   });
 }
 
 function handleCommand(type, data) {
-  console.log(`${new Date()} Received Command type=${type} data=${data}`);
+  logger.debug(`Received Command type=${type} data=${data}`);
   if (type === 'command' && data === 'initbot') {
     client.connect().then(() => {
       const message = {
         type: 'message',
         data: 'initbot',
       };
-      console.log(
-        new Date() + 'handleCommand sendUTF  = ' + JSON.stringify(message)
-      );
+      logger.debug('handleCommand message ---------------- ');
+      logger.debug(message);
       sendMessage(JSON.stringify(message));
     });
   }
@@ -121,9 +113,8 @@ function handleCommand(type, data) {
         type: 'message',
         data: 'termbot',
       };
-      console.log(
-        new Date() + 'handleCommand sendUTF  = ' + JSON.stringify(message)
-      );
+      logger.debug('handleCommand send message ---------------- ');
+      logger.debug(message);
       sendMessage(JSON.stringify(message));
     });
   }
@@ -134,22 +125,22 @@ function handleCommand(type, data) {
       type: 'clients',
       data: twitchSrvUsers.get(),
     };
-    console.log(
-      new Date() + 'handleCommand sendUTF  = ' + JSON.stringify(message)
-    );
+    logger.debug('handleCommand send message ---------------- ');
+    logger.debug(message);
+
     sendMessage(JSON.stringify(message));
   }
 }
 
 function handleMessage(message, type, data) {
-  console.log(new Date() + ' Received  Message = ' + message);
+  logger.debug('Received  Message =  ---------------- ');
+  logger.debug(message);
 }
 
 function handleUTF8(message) {
   const { type, data } = message;
-  console.log(
-    new Date() + ' Received utf8 Message : ' + JSON.stringify(message)
-  );
+  logger.debug('Received utf8 Message =  ---------------- ');
+  logger.debug(message);
 
   switch (type) {
     case 'command':
@@ -159,20 +150,16 @@ function handleUTF8(message) {
       handleMessage(type, data);
       break;
     default:
-      console.log(
-        `${new Date()} Mensagem Invalida ${JSON.stringify(mensagem)} `
-      );
+      logger.error('Mensagem Invalida =  ---------------- ');
+      logger.error(message);
       break;
       return;
   }
 }
 
 function handleBinary(message) {
-  console.log(
-    new Date() +
-      ' Received Binary Message of ' +
-      message.binaryData.length +
-      ' bytes'
+  logger.debug(
+    'Received Binary Message of ' + message.binaryData.length + ' bytes'
   );
 }
 
