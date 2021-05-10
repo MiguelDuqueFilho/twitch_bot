@@ -4,6 +4,11 @@ const client = require('../twitch/client');
 // I'm maintaining all active connections in this object
 const webClients = {};
 
+const infoTwitch = {
+  statusConnect: false,
+  roomState: {},
+};
+
 const twitchSrvUsers = (module.exports = {
   twitchUsers: {},
   merge: function (joinUsers) {
@@ -45,7 +50,7 @@ const getUniqueID = () => {
   return s4() + s4() + '-' + s4();
 };
 
-function handleRequest(request) {
+async function handleRequest(request) {
   if (!originIsAllowed(request.origin)) {
     // Make sure we only accept requests from an allowed origin
     request.reject();
@@ -56,7 +61,7 @@ function handleRequest(request) {
 
   logger.debug('Recieved a new connection from origin ' + request.origin + '.');
   // You can rewrite this part of the code to accept only the requests from allowed origin
-  const connection = request.accept(null, request.origin);
+  const connection = await request.accept(null, request.origin);
 
   webClients[userID] = connection;
 
@@ -66,6 +71,33 @@ function handleRequest(request) {
       ' in ' +
       Object.getOwnPropertyNames(webClients)
   );
+
+  logger.debug('status twitch ' + infoTwitch.statusConnect);
+
+  if (infoTwitch.statusConnect) {
+    let message = {
+      type: 'message',
+      data: 'initbot',
+    };
+    logger.debug(message);
+    sendMessage(JSON.stringify(message));
+    if (twitchSrvUsers.twitchUsers.length !== 0) {
+      message = {
+        type: 'clients',
+        data: twitchSrvUsers.get(),
+      };
+      logger.debug(message);
+      sendMessage(JSON.stringify(message));
+    }
+    if (infoTwitch.roomState.length !== 0) {
+      message = {
+        type: 'roomstate',
+        data: infoTwitch.roomState,
+      };
+      logger.debug(message);
+      sendMessage(JSON.stringify(message));
+    }
+  }
 
   connection.on('message', function (message) {
     switch (message.type) {
@@ -125,7 +157,7 @@ function handleCommand(type, data) {
       type: 'clients',
       data: twitchSrvUsers.get(),
     };
-    logger.debug('handleCommand send message ---------------- ');
+    logger.debug('send message clients ---------------- ');
     logger.debug(message);
 
     sendMessage(JSON.stringify(message));
@@ -163,4 +195,9 @@ function handleBinary(message) {
   );
 }
 
-module.exports = { handleRequest, sendMessage, twitchSrvUsers };
+module.exports = {
+  infoTwitch,
+  handleRequest,
+  sendMessage,
+  twitchSrvUsers,
+};

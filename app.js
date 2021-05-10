@@ -24,7 +24,7 @@ const {
   onMessagedeletedHandle,
   onClearchatHandle,
   onEmoteonlyHandle,
-  onEmotesetsHandle,
+  // onEmotesetsHandle,
   onFollowersonlyHandle,
   onGiftpaidupgradeHandle,
   onResubHandle,
@@ -74,7 +74,7 @@ client.on('mod', onModHandle);
 client.on('mods', onModsHandle);
 client.on('clearchat', onClearchatHandle);
 client.on('emoteonly', onEmoteonlyHandle);
-client.on('emotesets', onEmotesetsHandle);
+// client.on('emotesets', onEmotesetsHandle);
 client.on('followersonly', onFollowersonlyHandle);
 client.on('giftpaidupgrade', onGiftpaidupgradeHandle);
 client.on('subgift', onSubgiftHandle);

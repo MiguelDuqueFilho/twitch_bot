@@ -1,7 +1,11 @@
 const logger = require('../logger');
 const handleChat = require('./messageTypes/handleChat');
 const handleAction = require('./messageTypes/handleAction');
-const { sendMessage, twitchSrvUsers } = require('../webSocket/handleRequest');
+const {
+  sendMessage,
+  twitchSrvUsers,
+  infoTwitch,
+} = require('../webSocket/handleRequest');
 
 function onActionHandle(channel, userstate, message, self) {
   logger.debug(
@@ -73,9 +77,15 @@ function onResubHandle(channel, username, months, message, userstate, methods) {
 }
 
 function onRoomstateHandle(channel, state) {
-  logger.debug(
-    `This is a onRoomstateHandle channel=${channel}, state=${state}`
-  );
+  logger.debug(`This is a onRoomstateHandle channel=${channel}, state==>`);
+  infoTwitch.roomState = state;
+  const message = {
+    type: 'roomstate',
+    data: infoTwitch.roomState,
+  };
+  logger.debug('onRoomstateHandle send message ---------------- ');
+  logger.debug(message);
+  sendMessage(JSON.stringify(message));
 }
 
 function onHostingHandle(channel, target, viewers) {
