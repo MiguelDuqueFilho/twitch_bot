@@ -7,11 +7,13 @@ const {
   infoTwitch,
 } = require('../webSocket/handleRequest');
 
-function onActionHandle(channel, userstate, message, self) {
+function onActionHandle(channel, user, message, self) {
   logger.debug(
-    `This is a onAction channel=${channel}, userstate=${userstate}, message=${message}, self=${self} `
+    `This is a onAction channel=${channel}, user=${user}, message=${message}, self=${self} `
   );
   if (self) return;
+  const isBot = user.username.toLowerCase() === process.env.TWITCH_BOT_USERNAME;
+  if (isBot) return;
 }
 
 function onAnongiftpaidupgradeHandle(channel, username, userstate) {
@@ -112,6 +114,8 @@ function onPartHandle(channel, username, self) {
     `This is a onPartHandle channel=${channel}, username=${username}, self=${self}`
   );
   if (self) return;
+  const isBot = username.toLowerCase() === process.env.TWITCH_BOT_USERNAME;
+  if (isBot) return;
 }
 
 function onR9kbetaHandle(channel, enabled) {
@@ -136,11 +140,13 @@ function onVipsHandle(channel, vips) {
   logger.debug(`This is a onVipsHandle channel=${channel}, vips=${vips}`);
 }
 
-function onWhisperHandle(from, userstate, message, self) {
+function onWhisperHandle(from, user, message, self) {
   logger.debug(
-    `This is a onWhisperHandle from=${from}, userstate=${userstate}, message=${message}, self=${self}`
+    `This is a onWhisperHandle from=${from}, user=${user}, message=${message}, self=${self}`
   );
   if (self) return;
+  const isBot = user.username.toLowerCase() === process.env.TWITCH_BOT_USERNAME;
+  if (isBot) return;
 }
 
 function onUnhostHandle(channel, viewers) {
@@ -172,8 +178,8 @@ function onJoinHandle(channel, username, self) {
   logger.debug(
     `This is a Join.. channel=${channel}, username=${username}, self=${self} `
   );
-  // if (self) return;
 
+  if (self) return;
   const isBot = username.toLowerCase() === process.env.TWITCH_BOT_USERNAME;
   if (isBot) return;
 
@@ -241,25 +247,28 @@ function onModsHandle(channel, mods) {
   logger.debug(`This is a onModsHandle channel=${channel}, mods=${mods} `);
 }
 
-function onMessageHandle(channel, tags, message, self) {
+function onMessageHandle(channel, user, message, self) {
   logger.debug(
-    `onMessageHandle channel=${channel}, tags=${tags['display-name']}, messageType=${tags['message-type']}, message=${message}, self=${self} `
+    `onMessageHandle channel=${channel}, user=${user['display-name']}, messageType=${user['message-type']}, message=${message}, self=${self} `
   );
-  //  Handle different message types..
-  switch (tags['message-type']) {
+  if (self) return;
+  const isBot = user.username.toLowerCase() === process.env.TWITCH_BOT_USERNAME;
+  if (isBot) return;
+
+  switch (user['message-type']) {
     case 'action':
-      handleAction(channel, tags, message, self);
+      handleAction(channel, user, message, self);
       break;
     case 'chat':
-      handleChat(channel, tags, message, self);
+      handleChat(channel, user, message, self);
       break;
     default:
       logger.debug(
-        `Something else ? channel=${channel}, tags=${tags['display-name']}, messageType=${tags['message-type']}, message=${message}, self=${self} `
+        `Something else ? channel=${channel}, user=${user['display-name']}, messageType=${user['message-type']}, message=${message}, self=${self} `
       );
       break;
-      return;
   }
+  return;
 }
 
 module.exports = {

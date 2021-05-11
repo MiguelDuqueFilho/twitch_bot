@@ -16,12 +16,11 @@ async function handleChat(channel, user, message, self) {
   );
 
   if (self) return;
+  const isBot = user.username.toLowerCase() === process.env.TWITCH_BOT_USERNAME;
+  if (isBot) return;
 
   logger.debug(`handleChat -----------`);
   logger.debug({ user });
-
-  const isBot = user.username.toLowerCase() === process.env.TWITCH_BOT_USERNAME;
-  if (isBot) return;
 
   const [raw, command, args] = message.match(regexpCommand) || [
     null,
