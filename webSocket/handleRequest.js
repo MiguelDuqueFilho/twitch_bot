@@ -125,7 +125,7 @@ async function handleRequest(request) {
   });
 }
 
-function handleCommand(type, data) {
+function handleCmdSrv(type, data) {
   logger.debug(`Received Command type=${type} data=${data}`);
   if (type === 'command' && data === 'initbot') {
     client.connect().then(() => {
@@ -133,7 +133,7 @@ function handleCommand(type, data) {
         type: 'message',
         data: 'initbot',
       };
-      logger.debug('handleCommand message ---------------- ');
+      logger.debug('handleCmdSrv message ---------------- ');
       logger.debug(message);
       sendMessage(JSON.stringify(message));
     });
@@ -145,10 +145,22 @@ function handleCommand(type, data) {
         type: 'message',
         data: 'termbot',
       };
-      logger.debug('handleCommand send message ---------------- ');
+      logger.debug('handleCmdSrv send message ---------------- ');
       logger.debug(message);
       sendMessage(JSON.stringify(message));
     });
+  }
+
+  if (type === 'command' && data === 'clearclients') {
+    twitchSrvUsers.clear();
+    const message = {
+      type: 'clients',
+      data: twitchSrvUsers.get(),
+    };
+    logger.debug('send message clients ---------------- ');
+    logger.debug(message);
+
+    sendMessage(JSON.stringify(message));
   }
 
   if (type === 'command' && data === 'clearclients') {
@@ -169,6 +181,39 @@ function handleMessage(message, type, data) {
   logger.debug(message);
 }
 
+function handleCmdTtv(type, data) {
+  client.is;
+  const { cmd, cmddata } = data;
+  logger.debug(`Received Command to Twitch via site type=${type} data=${data}`);
+  logger.debug(`Command to Twitch cmd=${cmd} cmddata ==>`);
+  logger.debug(cmddata);
+  if (cmd === 'r9k') {
+    if (cmddata.status) {
+      client.r9kbeta(process.env.TWITCH_CHANNEL_NAME).then(() => {
+        logger.debug('r9kbeta success ---------------- ');
+      });
+    } else {
+      client.r9kbetaoff(process.env.TWITCH_CHANNEL_NAME).then(() => {
+        logger.debug('r9kbetaoff success ---------------- ');
+      });
+    }
+  }
+  if (cmd === 'ban') {
+    const reason = 'usuário fora das regras do canal';
+    client
+      .ban(process.env.TWITCH_CHANNEL_NAME, cmddata.username, reason)
+      .then(() => {
+        // const message = {
+        //   type: 'message',
+        //   data: 'initbot',
+        // };
+        logger.debug('ban success ---------------- ');
+        // logger.debug(message);
+        // sendMessage(JSON.stringify(message));
+      });
+  }
+}
+
 function handleUTF8(message) {
   const { type, data } = message;
   logger.debug('Received utf8 Message =  ---------------- ');
@@ -176,10 +221,13 @@ function handleUTF8(message) {
 
   switch (type) {
     case 'command':
-      handleCommand(type, data);
+      handleCmdSrv(type, data);
       break;
     case 'message':
       handleMessage(type, data);
+      break;
+    case 'cmdttv':
+      handleCmdTtv(type, data);
       break;
     default:
       logger.error('Mensagem Invalida =  ---------------- ');

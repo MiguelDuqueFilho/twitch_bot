@@ -24,8 +24,9 @@ function onAnongiftpaidupgradeHandle(channel, username, userstate) {
 
 function onBanHandle(channel, username, reason, userstate) {
   logger.debug(
-    `This is a onBanHandle channel=${channel}, username=${username}, reason=${reason}, userstate=${userstate} `
+    `This is a onBanHandle channel=${channel}, username=${username}, reason=${reason}, userstate==> `
   );
+  logger.debug({ userstate });
 }
 
 function onCheerHandle(channel, userstate, message) {
@@ -78,7 +79,7 @@ function onResubHandle(channel, username, months, message, userstate, methods) {
 
 function onRoomstateHandle(channel, state) {
   logger.debug(`This is a onRoomstateHandle channel=${channel}, state==>`);
-  infoTwitch.roomState = state;
+  infoTwitch.roomState = { ...infoTwitch.roomState, ...state };
   const message = {
     type: 'roomstate',
     data: infoTwitch.roomState,
